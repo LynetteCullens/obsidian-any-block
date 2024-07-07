@@ -1,25 +1,25 @@
 import {ABReg} from "src/config/abReg"
 import {ConfSelect, type ABSettingInterface} from "src/config/abSettingTab"
 
-/** 匹配关键字接口 */
+/** Keyword matching interface */
 export interface MdSelectorSpec {
-  from: number,     // 替换范围
+  from: number,     // Replacement range
   to: number,       // .
-  header: string,   // 头不是信息
-  selector: string, // 范围选择方式
-  content: string   // 内容信息
+  header: string,   // Header is not information
+  selector: string, // Range selection method
+  content: string   // Content information
 }
 
-/** 管理器列表 */
+/** Manager list */
 // let map_ABMdSelector:Map<string, any>
-// 原来ts也有py那样的注册器? 叫类装饰器，但使用这个功能要开一点选项：
+// Originally, ts also has py-like registrars? It's called a class decorator, but using this feature requires opening some options:
 // @warning: https://blog.csdn.net/m0_38082783/article/details/127048237
 function register_list_mdSelector(name: string){
   return function (target: Function){
     // map_ABMdSelector.set(name, target)
   }
 }
-// 配置返回列表
+// Configure the return list
 export function get_selectors(setting: ABSettingInterface){
   let list_ABMdSelector:any[]=[]
   // if (setting.select_list!=ConfSelect.no) list_ABMdSelector.push(map_ABMdSelector.get("list"))
@@ -33,19 +33,19 @@ export function get_selectors(setting: ABSettingInterface){
   return list_ABMdSelector
 }
 
-/** AnyBlock范围管理器
- * 一段文字可以生成一个实例，主要负责返回RangeSpec类型
- * 一次性使用
+/** AnyBlock range manager
+ * A piece of text can generate an instance, which is mainly responsible for returning the RangeSpec type
+ * One-time use
  */
 export class ABMdSelector{
-  mdText: string = ""     // 全文文本
-  /** 行数 - total_ch 映射表
-   * 该表的长度是 行数+1
-   * map_line_ch[i] = 序列i行最前面的位置
-   * map_line_ch[i+1]-1 = 序列i行最后面的位置
+  mdText: string = ""     // Full text
+  /** Line number - total_ch mapping table
+   * The length of this table is the line number+1
+   * map_line_ch[i] = the position at the beginning of line i in the sequence
+   * map_line_ch[i+1]-1 = the position at the end of line i in the sequence
    */
   settings: ABSettingInterface
-  map_line_ch: number[]  // line-ch 映射表
+  map_line_ch: number[]  // line-ch mapping table
   _specKeywords:MdSelectorSpec[]
   public get specKeywords(){
     return this._specKeywords
@@ -66,29 +66,29 @@ export class ABMdSelector{
   }
 
   protected blockMatch_keyword(): MdSelectorSpec[]{
-    throw("Error: 没有重载 ABRangeManager::blockMatch_keyword")
+    throw("Error: No overload ABRangeManager::blockMatch_keyword")
   }
 }
 
 @register_list_mdSelector("brace")
 class ABMdSelector_brace extends ABMdSelector {
-  /** 块 - 匹配关键字 */
+  /** Block - Match keyword */
   protected blockMatch_keyword(): MdSelectorSpec[] {
     return this.lineMatch_keyword()
   }
 
-   /** 行 - 匹配关键字（非内联） */
+   /** Line - Match keyword (non-inline) */
   private lineMatch_keyword(): MdSelectorSpec[] {
     const matchInfo: MdSelectorSpec[] = []
     const list_text = this.mdText.split("\n")
     let prev_front_line:number[] = []
     for (let i=0; i<list_text.length; i++){
-      if(ABReg.reg_front.test(list_text[i])){       // 前缀
+      if(ABReg.reg_front.test(list_text[i])){       // Prefix
         prev_front_line.push(i)
       }
-      else if(ABReg.reg_end.test(list_text[i])){    // 后缀
+      else if(ABReg.reg_end.test(list_text[i])){    // Suffix
         if(prev_front_line && prev_front_line.length>0){
-          const from_line = prev_front_line.pop()??0 // @warning 有可能pop出来undefine?
+          const from_line = prev_front_line.pop()??0 // @warning Is it possible to pop out undefine?
           const from = this.map_line_ch[from_line]
           const to = this.map_line_ch[i+1]-1
           matchInfo.push({
@@ -115,18 +115,18 @@ class ABMdSelector_list extends ABMdSelector{
   private lineMatch_keyword(): MdSelectorSpec[] {
     let matchInfo2:{
       line_from:number, 
-      line_to:number,     // 不包含
+      line_to:number,     // Not included
       list_header:string
     }[] = []
     const list_text = this.mdText.split("\n")
-    let list_header = ""      // 1. 头部信息
-    let is_list_mode = false  // 2. 是否在列表中
-    let prev_list_from = 0    // 3. 在列表中时，在哪开始
-    let record_last_line = 0  // 4. 用于清除最后的空行
+    let list_header = ""      // 1. Header information
+    let is_list_mode = false  // 2. Whether in the list
+    let prev_list_from = 0    // 3. Where to start when in the list
+    let record_last_line = 0  // 4. Used to clear the last empty line
     for (let i=0; i<list_text.length; i++){
-      if (!is_list_mode){                     // 选择开始标志
+      if (!is_list_mode){                     // Select start flag
         if (!ABReg.reg_list.test(list_text[i])) continue
-        // 尝试找headers
+        // Try to find headers
         if (i!=0){
           const header = list_text[i-1].match(ABReg.reg_header)
           if (header){
@@ -137,25 +137,25 @@ class ABMdSelector_list extends ABMdSelector{
             continue
           }
         }
-        // 没有header 不选
+        // No header not selected
         if (this.settings.select_list==ConfSelect.ifhead) continue
-        // 没有header 也选
+        // No header is also selected
         prev_list_from = i
         list_header = ""
         is_list_mode = true
         record_last_line=i
         continue
       }
-      else {                                  // 选择结束标志
-        if (ABReg.reg_list.test(list_text[i])) {        // 列表
+      else {                                  // Select end flag
+        if (ABReg.reg_list.test(list_text[i])) {        // List
           record_last_line=i
           continue 
         }
-        if (/^\s+?\S/.test(list_text[i])) {             // 开头有缩进
+        if (/^\s+?\S/.test(list_text[i])) {             // Indentation at the beginning
           record_last_line=i
           continue
         }
-        if (/^\s*$/.test(list_text[i])) {               // 空行
+        if (/^\s*$/.test(list_text[i])) {               // Empty line
           continue
         }
         matchInfo2.push({
@@ -167,7 +167,7 @@ class ABMdSelector_list extends ABMdSelector{
         list_header = ""
       }
     }
-    if (is_list_mode){                        // 结束循环收尾
+    if (is_list_mode){                        // End loop ending
       matchInfo2.push({
         line_from: prev_list_from,
         line_to: record_last_line+1,
@@ -184,7 +184,7 @@ class ABMdSelector_list extends ABMdSelector{
       matchInfo.push({
         from: from,
         to: to,
-        header: item.list_header.indexOf("2")==0?"list"+item.list_header:item.list_header, // list选择器语法糖
+        header: item.list_header.indexOf("2")==0?"list"+item.list_header:item.list_header, // List selector syntactic sugar
         selector: "list",
         content: item.list_header==""?
           this.mdText.slice(from, to):
@@ -204,11 +204,11 @@ class ABMdSelector_code extends ABMdSelector{
     let prev_header = ""
     let code_flag = ""
     for (let i=0; i<list_text.length; i++){
-      if (!code_flag){                          // 选择开始标志
-        // 找开始标志
+      if (!code_flag){                          // Select start flag
+        // Look for start flag
         const match_tmp = list_text[i].match(ABReg.reg_code)
         if (!match_tmp) continue
-        // 尝试找header
+        // Try to find header
         if (i!=0) {
           const header = list_text[i-1].match(ABReg.reg_header)
           if (header){
@@ -218,18 +218,18 @@ class ABMdSelector_code extends ABMdSelector{
             continue
           }
         }
-        // 没有header 不选
+        // No header not selected
         if (this.settings.select_code==ConfSelect.ifhead) continue
-        // 没有header 也选
+        // No header is also selected
         prev_from = i
         code_flag = match_tmp[3]
         prev_header = ""
         continue
       }
-      else {                                    // 选择结束标志
+      else {                                    // Select end flag
         if (list_text[i].indexOf(code_flag)==-1) continue
         const from = this.map_line_ch[prev_from]
-        const to = this.map_line_ch[i+1]-1  // 包括这一行
+        const to = this.map_line_ch[i+1]-1  // Including this line
         matchInfo.push({
           from: from,
           to: to,
@@ -243,7 +243,7 @@ class ABMdSelector_code extends ABMdSelector{
         code_flag = ""
       }
     }
-    // 这个不需要尾处理
+    // This does not require tail processing
     return matchInfo
   }
 }
@@ -257,9 +257,9 @@ class ABMdSelector_quote extends ABMdSelector{
     let prev_header = ""
     let is_in_quote = false
     for (let i=0; i<list_text.length; i++){
-      if (!is_in_quote){                          // 选择开始标志
+      if (!is_in_quote){                          // Select start flag
         if (ABReg.reg_quote.test(list_text[i])){
-          // 尝试找header
+          // Try to find header
           if (i!=0) {
             const header = list_text[i-1].match(ABReg.reg_header)
             if (header){
@@ -269,19 +269,19 @@ class ABMdSelector_quote extends ABMdSelector{
               continue
             }
           }
-          // 没有header 不选
+          // No header not selected
           if (this.settings.select_quote==ConfSelect.ifhead) continue
-          // 没有header 也选
+          // No header is also selected
           prev_header = ""
           prev_from = i
           is_in_quote = true
           continue
         }
       }
-      else {                                      // 选择结束标志
+      else {                                      // Select end flag
         if (ABReg.reg_quote.test(list_text[i])) continue
         const from = this.map_line_ch[prev_from]
-        const to = this.map_line_ch[i]-1          // 不包括这一行
+        const to = this.map_line_ch[i]-1          // Not including this line
         matchInfo.push({
           from: from,
           to: to,
@@ -295,10 +295,10 @@ class ABMdSelector_quote extends ABMdSelector{
         is_in_quote = false
       }
     }
-    if (is_in_quote){                        // 结束循环收尾
+    if (is_in_quote){                        // End loop ending
       const i = list_text.length-1
       const from = this.map_line_ch[prev_from]
-      const to = this.map_line_ch[i+1]-1   // 包括这一行
+      const to = this.map_line_ch[i+1]-1   // Including this line
       matchInfo.push({
         from: from,
         to: to,
@@ -324,10 +324,10 @@ class ABMdSelector_heading extends ABMdSelector{
     let prev_header = ""
     let prev_heading_level = 0
     for (let i=0; i<list_text.length; i++){
-      if (prev_heading_level==0){             // 选择开始标志
+      if (prev_heading_level==0){             // Select start flag
         const match_tmp = list_text[i].match(ABReg.reg_heading)
         if (!match_tmp) continue
-        // 尝试找header
+        // Try to find header
         if (i!=0) {
           const header = list_text[i-1].match(ABReg.reg_header)
           if (header){
@@ -337,20 +337,20 @@ class ABMdSelector_heading extends ABMdSelector{
             continue
           }
         }
-        // 没有header 不选
+        // No header not selected
         if (this.settings.select_code==ConfSelect.ifhead) continue
-        // 没有header 也选
+        // No header is also selected
         prev_from = i
         prev_heading_level = match_tmp[3].length
         prev_header = ""
         continue
       }
-      else {                                   // 选择结束标志
+      else {                                   // Select end flag
         const match_tmp = list_text[i].match(ABReg.reg_heading)
         if (!match_tmp) continue
-        if (match_tmp[3].length >= prev_heading_level) continue // 【改】可选同级
+        if (match_tmp[3].length >= prev_heading_level) continue // 【改】Optional same level
         const from = this.map_line_ch[prev_from]
-        const to = this.map_line_ch[i]-1  // 不包括这一行
+        const to = this.map_line_ch[i]-1  // Not including this line
         matchInfo.push({
           from: from,
           to: to,
@@ -361,7 +361,7 @@ class ABMdSelector_heading extends ABMdSelector{
             this.mdText.slice(this.map_line_ch[prev_from+1], to)
         })
         
-        // 需要向上回溯一行
+        // Need to go back one line
         prev_header = ""
         prev_heading_level = 0
         i--
@@ -370,7 +370,7 @@ class ABMdSelector_heading extends ABMdSelector{
     if(prev_heading_level>0){
       const i = list_text.length-1
       const from = this.map_line_ch[prev_from]
-      const to = this.map_line_ch[i+1]-1  // 包括这一行
+      const to = this.map_line_ch[i+1]-1  // Including this line
       matchInfo.push({
         from: from,
         to: to,
@@ -385,12 +385,12 @@ class ABMdSelector_heading extends ABMdSelector{
   }
 }
 
-// 旧brace方法（内联用），现在的方法不能搞内联，这些代码先注释着等以后备用
+// Old brace method (inline use), the current method cannot handle inline, these codes are commented out for later use
 {
-  /** 行 - 匹配关键字（内联） */
+  /** Line - Match keyword (inline) */
   /*private lineMatch_keyword_line(): RangeSpec[] {
     const matchInfo: RangeSpec[] = []
-    const matchList: RegExpMatchArray|null= this.mdText.match(this.reg_total);        // 匹配项
+    const matchList: RegExpMatchArray|null= this.mdText.match(this.reg_total);        // Match item
 
     if (!matchList) return []
     let prevIndex = 0
@@ -398,12 +398,12 @@ class ABMdSelector_heading extends ABMdSelector{
       const from2 = this.mdText.indexOf(matchItem, prevIndex)
       const to2 = from2 + matchItem.length;
       prevIndex = to2;
-      let reg_match // 匹配的正则项
+      let reg_match // Matching regular expression item
       for (let reg in this.list_reg){
         if (matchItem.match(reg)) {reg_match = reg; break;}
       }
       matchInfo.push({
-        from: from2,//////////////////// @bug 还要去除brace模式的头部信息，然后填写text
+        from: from2,//////////////////// @bug Also need to remove the header information of the brace mode, and then fill in the text
         to: to2,
         header: matchItem,
         match: String(reg_match),
@@ -413,10 +413,10 @@ class ABMdSelector_heading extends ABMdSelector{
     return matchInfo
   }*/
 
-  /** 转化 - 匹配关键字 */
+  /** Transform - Match keyword */
   /*private line2BlockMatch(listSpecKeyword: RangeSpec[]): RangeSpec[]{
-    let countBracket = 0  // 括号计数
-    let prevBracket = []  // 括号栈
+    let countBracket = 0  // Bracket count
+    let prevBracket = []  // Bracket stack
     let listSpecKeyword_new: RangeSpec[] = []
     for (const matchItem of listSpecKeyword) {
       if (matchItem.header=="%{") {
