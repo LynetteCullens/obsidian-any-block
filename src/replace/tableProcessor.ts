@@ -7,12 +7,12 @@ import GeneratorBranchTable from "src/svelte/GeneratorBranchTable.svelte"
 import GeneratorListTable from "src/svelte/GeneratorListTable.svelte"
 import GeneratorTab from "src/svelte/GeneratorTab.svelte"
 
-// 通用表格数据，一个元素等于是一个单元格项
+// Common table data, one element equals a cell item
 // interface TableItem{
-//   level: number;          // 级别
-//   content: string;        // 内容
-//   tableRow: number,       // 跨行数
-//   tableLine: number       // 对应首行序列
-//   // 跨列数
+//   level: number;          // Level
+//   content: string;        // Content
+//   tableRow: number,       // Number of rows spanned
+//   tableLine: number       // Corresponding first line sequence
+//   // Number of columns spanned
 // }
 // export type List_TableItem = TableItem[]
