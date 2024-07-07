@@ -38,7 +38,7 @@
     // 元素全部创建完再来绑按钮事件，不然有可能有问题
     const lis:NodeListOf<HTMLLIElement> = tab.querySelectorAll(".ab-tab-tab")
     const contents = tab.querySelectorAll(".ab-tab-content")
-    if (lis.length!=contents.length) console.warn("ab-tab-tab和ab-tab-content的数量不一致")
+    if (lis.length!=contents.length) console.warn("The number of ab-tab-tab and ab-tab-content is inconsistent")
     for (let i=0; i<lis.length; i++){
       lis[i].onclick = ()=>{
         for (let j=0; j<contents.length; j++){
