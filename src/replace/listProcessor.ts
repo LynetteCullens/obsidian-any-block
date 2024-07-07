@@ -7,53 +7,53 @@ import GeneratorBranchTable from "src/svelte/GeneratorBranchTable.svelte"
 import GeneratorListTable from "src/svelte/GeneratorListTable.svelte"
 import GeneratorTab from "src/svelte/GeneratorTab.svelte"
 
-// 通用列表数据，一个元素等于是一个列表项
+// Common list data, one element equals one list item
 interface ListItem {
-  content: string;        // 内容
-  level: number;          // 级别
+  content: string;        // Content
+  level: number;          // Level
 }[]
 export type List_ListItem = ListItem[]
-// 通用表格数据，一个元素等于是一个单元格项
+// Common table data, one element equals one cell item
 interface TableItem extends ListItem{
-  tableRow: number,       // 跨行数
-  tableLine: number       // 对应首行序列
+  tableRow: number,       // Number of rows spanned
+  tableLine: number       // Corresponding first line sequence
 }
 export type List_TableItem = TableItem[]
 
 export class ListProcess{
 
-  /** title转列表 */
+  /** Title to list */
   static title2list(text: string, div: HTMLDivElement) {
     let list_itemInfo = this.title2data(text)
     list_itemInfo = this.data2strict(list_itemInfo)
     return this.data2list(list_itemInfo)
   }
 
-  /** 列表转表格 */
+  /** List to table */
   static list2table(text: string, div: HTMLDivElement, modeT=false) {
     let list_itemInfo = this.list2data(text)
     return this.data2table(list_itemInfo, div, modeT)
   }
 
-  /** 列表转列表 */
+  /** List to list */
   /*static list2l(text: string, div: HTMLDivElement) {
     let list_itemInfo = this.list2data(text, true)
     return this.data2list(list_itemInfo)
   }*/
 
-  /** 列表转列表格 */
+  /** List to list table */
   static list2lt(text: string, div: HTMLDivElement, modeT=false) {
     let list_itemInfo = this.list2data(text, true)
     return this.uldata2ultable(list_itemInfo, div, modeT)
   }
 
-  /** 列表转树形目录 */
+  /** List to folder tree */
   static list2folder(text: string, div: HTMLDivElement, modeT=false) {
     let list_itemInfo = this.list2data(text, true)
     return this.uldata2ultable(list_itemInfo, div, modeT, true)
   }
 
-  /** 列表转二维表格 */
+  /** List to two-dimensional table */
   static list2ut(text: string, div: HTMLDivElement, modeT=false) {
     //【old】
     /*let list_itemInfo = this.old_ulist2data(text)
@@ -65,74 +65,74 @@ export class ListProcess{
     return this.data2table(data, div, modeT)
   }
 
-  /** 一级列表转时间线 */
+  /** First-level list to timeline */
   static list2timeline(text: string, div: HTMLDivElement, modeT=false) {
     let data = this.list2data(text)
     data = this.data_mL_2_2L(data)
     return this.data2table(data, div, modeT)
   }
 
-  /** 一级列表转标签栏 */
+  /** First-level list to tab bar */
   static list2tab(text: string, div: HTMLDivElement, modeT=false) {
     let data = this.list2data(text)
     data = this.data_mL_2_2L1B(data)
     return this.data2tab(data, div, modeT)
   }
 
-  /** 列表转mermaid流程图 */
+  /** List to mermaid flowchart */
   static list2mermaid(text: string, div: HTMLDivElement) {
     let list_itemInfo = this.list2data(text)
     return this.data2mermaid(list_itemInfo, div)
   }
 
-  /** 列表转mermaid思维导图 */
+  /** List to mermaid mind map */
   static list2mindmap(text: string, div: HTMLDivElement) {
     let list_itemInfo = this.list2data(text)
     return this.data2mindmap(list_itemInfo, div)
   }
 
-  /** 去除列表的inline */
+  /** Remove inline from list */
   static listXinline(text: string){
     const data = this.list2data(text)
     return this.data2list(data)
   }
 
-  /** 列表文本转列表数据 
-   *  @bug 不能跨缩进，后面再对异常缩进进行修复
-   *  @bug 内换行` | `可能有bug
-   *  @param modeT: 保留缩进模式
-   *  @param modeG: 识别符号 ` | `（该选项暂时不可用，0为不识别，1为识别为下一级，2为识别为同一级，转ultable时会用到选项2）
+  /** Convert list text to list data 
+   *  @bug Cannot cross indentation, fix abnormal indentation later
+   *  @bug Inline line break ` | ` may have bugs
+   *  @param modeT: Keep indentation mode
+   *  @param modeG: Recognize symbol ` | ` (this option is currently unavailable, 0 for not recognizing, 1 for recognizing as next level, 2 for recognizing as the same level, used when converting ultable)
    */
   private static list2data(text: string, modeT=false, modeG=true){
     if (modeT) return this.ullist2data(text)
 
-    /** 内联补偿列表。只保留comp>0的项 */
+    /** Inline compensation list. Only keep items where comp>0 */
     let list_inline_comp:{
       level:number,
       inline_comp:number
     }[] = []
-    /** 更新 list_level_inline 的状态，并返回该项的补偿值 
-     * 流程：先向左溯源，再添加自己进去
+    /** Update the status of list_level_inline and return the compensation value of this item 
+     * Process: Trace back to the left first, then add yourself in
      */
     function update_inline_comp(
       level:number, 
       inline_comp:number
     ): number{
-      // 完全不用` | `命令就跳过了
+      // Completely skip if you don't use the ` | ` command
       if (list_inline_comp.length==0 && inline_comp==0) return 0
 
-      // 向左溯源（在左侧时）直到自己在补偿列表的右侧
+      // Trace back to the left (when on the left) until you are on the right of the compensation list
       while(list_inline_comp.length && list_inline_comp[list_inline_comp.length-1].level>=level){
         list_inline_comp.pop()
       }
-      if (list_inline_comp.length==0 && inline_comp==0) return 0 // 提前跳出
+      if (list_inline_comp.length==0 && inline_comp==0) return 0 // Exit early
 
-      // 计算总补偿值（不包括自己）
+      // Calculate the total compensation value (excluding yourself)
       let total_comp
       if (list_inline_comp.length==0) total_comp = 0
       else total_comp = list_inline_comp[list_inline_comp.length-1].inline_comp
 
-      // 添加自己进去
+      // Add yourself in
       if (inline_comp>0) list_inline_comp.push({
         level: level, 
         inline_comp: inline_comp+total_comp
@@ -141,18 +141,18 @@ export class ListProcess{
       return total_comp
     }
 
-    // 列表文本转列表数据
+    // Convert list text to list data
     let list_itemInfo:List_ListItem = []
 
     const list_text = text.split("\n")
-    for (let line of list_text) {                                             // 每行
+    for (let line of list_text) {                                             // Each line
       const m_line = line.match(ABReg.reg_list_noprefix)
       if (m_line) {
-        let list_inline: string[] = m_line[4].split("| ") // 内联分行
-        /** @bug  制表符长度是1而非4 */
+        let list_inline: string[] = m_line[4].split("| ") // Inline line break
+        /** @bug  Tab length is 1, not 4 */
         let level_inline: number = m_line[1].length
         let inline_comp = update_inline_comp(level_inline, list_inline.length-1)
-                                                                              // 不保留缩进（普通树表格）
+                                                                              // Do not keep indentation (normal tree table)
         for (let index=0; index<list_inline.length; index++){
           list_itemInfo.push({
             content: list_inline[index],
@@ -160,7 +160,7 @@ export class ListProcess{
           })
         }
       }
-      else{                                                                   // 内换行
+      else{                                                                   // Inline line break
         let itemInfo = list_itemInfo.pop()
         if(itemInfo){
           list_itemInfo.push({
@@ -173,16 +173,16 @@ export class ListProcess{
     return list_itemInfo
   }
 
-  // 标题大纲转列表数据（@todo 正文的level+10，要减掉）
+  // Convert heading outline to list data (@todo The level of the main text +10, need to subtract)
   private static title2data(text: string){
     let list_itemInfo:List_ListItem = []
 
     const list_text = text.split("\n")
-    let mul_mode:string = ""      // 多行模式，para或list或title或空
+    let mul_mode:string = ""      // Multi-line mode, para or list or title or empty
     for (let line of list_text) {
       const match_heading = line.match(ABReg.reg_heading_noprefix)
       const match_list = line.match(ABReg.reg_list_noprefix)
-      if (match_heading && !match_heading[1]){                // 1. 标题层级（只识别根处）
+      if (match_heading && !match_heading[1]){                // 1. Heading level (only recognize at the root)
         removeTailBlank()
         list_itemInfo.push({
           content: match_heading[4],
@@ -190,7 +190,7 @@ export class ListProcess{
         })
         mul_mode = "title"
       }
-      else if (match_list && !match_list[1]){                 // 2. 列表层级（只识别根处）
+      else if (match_list && !match_list[1]){                 // 2. List level (only recognize at the root)
         removeTailBlank()
         list_itemInfo.push({
           content: match_list[4],
@@ -198,10 +198,10 @@ export class ListProcess{
         })
         mul_mode = "list"
       }
-      else if (/^\S/.test(line) && mul_mode=="list"){         // 3. 带缩进且在列表层级中
+      else if (/^\S/.test(line) && mul_mode=="list"){         // 3. Indentation and at list level
         list_itemInfo[list_itemInfo.length-1].content = list_itemInfo[list_itemInfo.length-1].content+"\n"+line
       }
-      else {                                                  // 4. 正文层级
+      else {                                                  // 4. Main text level
         if (mul_mode=="para") {
           list_itemInfo[list_itemInfo.length-1].content = list_itemInfo[list_itemInfo.length-1].content+"\n"+line
         }
@@ -227,24 +227,24 @@ export class ListProcess{
     }
   }
 
-  // 这种类型的列表只有两层
+  // This type of list only has two levels
   private static old_ulist2data(text: string){
-    // 列表文本转列表数据
+    // Convert list text to list data
     let list_itemInfo:List_ListItem = []
 
     let level1 = -1
     let level2 = -1
     const list_text = text.split("\n")
-    for (let line of list_text) {                                             // 每行
+    for (let line of list_text) {                                             // Each line
       const m_line = line.match(ABReg.reg_list_noprefix)
       if (m_line) {
         let level_inline: number = m_line[1].length
-        let this_level: number                                    // 一共三种可能：1、2、3，3表示其他level
-        if (level1<0) {level1=level_inline; this_level = 1}       // 未配置level1
-        else if (level1>=level_inline) this_level = 1             // 是level1
-        else if (level2<0) {level2=level_inline; this_level = 2}  // 未配置level2
-        else if (level2>=level_inline) this_level = 2             // 是level2
-        else {                                                    // 内换行
+        let this_level: number                                    // There are three possibilities in total: 1, 2, 3, 3 represents other levels
+        if (level1<0) {level1=level_inline; this_level = 1}       // Level 1 not configured
+        else if (level1>=level_inline) this_level = 1             // Is level 1
+        else if (level2<0) {level2=level_inline; this_level = 2}  // Level 2 not configured
+        else if (level2>=level_inline) this_level = 2             // Is level 2
+        else {                                                    // Inline line break
           let itemInfo = list_itemInfo.pop()
           if(itemInfo){
             list_itemInfo.push({
@@ -259,7 +259,7 @@ export class ListProcess{
           level: this_level
         })
       }
-      else{                                                                   // 内换行
+      else{                                                                   // Inline line break
         let itemInfo = list_itemInfo.pop()
         if(itemInfo){
           list_itemInfo.push({
@@ -270,7 +270,7 @@ export class ListProcess{
       }
     }
 
-    // 二层树转一叉树
+    // Convert two-level tree to one-pronged tree
     let count_level_2 = 0
     for (let item of list_itemInfo){
       if (item.level==2){
@@ -285,31 +285,31 @@ export class ListProcess{
     return list_itemInfo
   }
 
-  /** 列表文本转列表表格数据
-   * 只能通过“|”符号实现跨列
-   * 所以这种是没有合并单元格
+  /** Convert list text to list table data
+   * Can only implement cross-column through "|" symbol
+   * So this does not have merged cells
    * 
-   * 第一列的level总为0
+   * The level of the first column is always 0
    */
   private static ullist2data(text: string){
     let list_itemInfo:List_ListItem = []
     
     const list_text = text.split("\n")
-    for (let line of list_text) {                                             // 每行
+    for (let line of list_text) {                                             // Each line
       const m_line = line.match(ABReg.reg_list_noprefix)
       if (m_line) {
-        let list_inline: string[] = m_line[4].split("| ") // 内联分行
+        let list_inline: string[] = m_line[4].split("| ") // Inline line break
         let level_inline: number = m_line[1].length
-                                                                              // 保留缩进（列表格）
+                                                                              // Keep indentation (list table)
         for (let inline_i=0; inline_i<list_inline.length; inline_i++){
-          if(inline_i==0) {                                                   // level为内联缩进
-            for (let i=0; i<level_inline; i++) list_inline[inline_i] = "&nbsp;&nbsp;" + list_inline[inline_i]
+          if(inline_i==0) {                                                   // level is inline indentation
+            for (let i=0; i<level_inline; i++) list_inline[inline_i] = "  " + list_inline[inline_i]
             list_itemInfo.push({
               content: list_inline[inline_i],
               level: 0
             })
           }
-          else{                                 // level为table的列数
+          else{                                 // level is the number of table columns
             list_itemInfo.push({
               content: list_inline[inline_i],
               level: level_inline+inline_i
@@ -317,7 +317,7 @@ export class ListProcess{
           }
         }
       }
-      else{                                                                   // 内换行
+      else{                                                                   // Inline line break
         let itemInfo = list_itemInfo.pop()
         if(itemInfo){
           list_itemInfo.push({
@@ -330,43 +330,43 @@ export class ListProcess{
     return list_itemInfo
   }
 
-  /** 列表数据严格化 */
+  /** Make list data strict */
   private static data2strict(
     list_itemInfo: List_ListItem
   ){
     let list_prev_level:number[] = [-999]
     let list_itemInfo2:{content:string, level:number}[] = []
     for (let itemInfo of list_itemInfo){
-      // 找到在list_prev_level的位置，用new_level保存
+      // Find the position in list_prev_level and save it in new_level
       let new_level = 0
       for (let i=0; i<list_prev_level.length; i++){
-        if (list_prev_level[i]<itemInfo.level) continue // 右移
-        else if(list_prev_level[i]==itemInfo.level){    // 停止并剔除旧的右侧数据
+        if (list_prev_level[i]<itemInfo.level) continue // Shift to the right
+        else if(list_prev_level[i]==itemInfo.level){    // Stop and discard the old data on the right
           list_prev_level=list_prev_level.slice(0,i+1)
           new_level = i
           break
         }
-        else {                                          // 在两个之间，则将该等级视为右侧的那个，且剔除旧的右侧数据
+        else {                                          // Between the two, then treat this level as the one on the right, and discard the old data on the right
           list_prev_level=list_prev_level.slice(0,i)
           list_prev_level.push(itemInfo.level)
           new_level = i
           break
         }
       }
-      if (new_level == 0) { // 循环尾调用
+      if (new_level == 0) { // End of loop call
         list_prev_level.push(itemInfo.level)
         new_level = list_prev_level.length-1
       }
-      // 更新列表数据。这里需要深拷贝而非直接修改原数组，方便调试和避免错误
+      // Update the list data. Deep copy is needed here instead of directly modifying the original array, which is convenient for debugging and avoiding errors
       list_itemInfo2.push({
         content: itemInfo.content,
-        level: (new_level-1)*2 // 记得要算等级要减去序列为0这个占位元素
+        level: (new_level-1)*2 // Remember to calculate the level and subtract the placeholder element with sequence 0
       })
     }
     return list_itemInfo2
   }
 
-  /** 多层树转二层一叉树
+  /** Convert multi-level tree to two-level one-pronged tree
    * example:
    * - 1
    *  - 2
@@ -382,12 +382,12 @@ export class ListProcess{
     let list_itemInfo2: List_ListItem = []
     let level1 = -1
     let level2 = -1
-    let flag_leve2 = false  // 表示触发过level2，当遇到level1会重置
+    let flag_leve2 = false  // Indicates that level 2 has been triggered, and it will be reset when level 1 is encountered
     for (let itemInfo of list_itemInfo) {
-      if (level1<0) {                                             // 未配置level1
+      if (level1<0) {                                             // Level 1 not configured
         level1=0//itemInfo.level;
       }
-      if (level1>=itemInfo.level){                                // 是level1
+      if (level1>=itemInfo.level){                                // Is level 1
         list_itemInfo2.push({
           content: itemInfo.content.trim(),
           level: level1
@@ -395,11 +395,11 @@ export class ListProcess{
         flag_leve2 = false
         continue
       }
-      if (level2<0) {                                             // 未配置level2
+      if (level2<0) {                                             // Level 2 not configured
         level2=1//itemInfo.level;
       }
-      if (true){                                                  // 是level2/level2+/level2-
-        if (!flag_leve2){                                           // 新建
+      if (true){                                                  // Is level 2/level 2+/level 2-
+        if (!flag_leve2){                                           // New
           list_itemInfo2.push({
             content: itemInfo.content.trim(),
             level: level2
@@ -407,7 +407,7 @@ export class ListProcess{
           flag_leve2 = true
           continue
         }
-        else {                                                      // 内换行
+        else {                                                      // Inline line break
           let old_itemInfo = list_itemInfo2.pop()
           if(old_itemInfo){
             let new_content = itemInfo.content.trim()
@@ -425,7 +425,7 @@ export class ListProcess{
     return list_itemInfo2
   }
 
-  /** 多层树转二层树
+  /** Convert multi-level tree to two-level tree
    * example:
    * - 1
    *  - 2
@@ -443,27 +443,27 @@ export class ListProcess{
     let level1 = -1
     let level2 = -1
     for (let itemInfo of list_itemInfo) {
-      if (level1<0) {                                             // 未配置level1
+      if (level1<0) {                                             // Level 1 not configured
         level1=0//itemInfo.level;
       }
-      if (level1>=itemInfo.level){                                // 是level1
+      if (level1>=itemInfo.level){                                // Is level 1
         list_itemInfo2.push({
           content: itemInfo.content.trim(),
           level: level1
         })
         continue
       }
-      if (level2<0) {                                             // 未配置level2
+      if (level2<0) {                                             // Level 2 not configured
         level2=1//itemInfo.level;
       }
-      if (level2>=itemInfo.level){                                // 是level2/level2-
+      if (level2>=itemInfo.level){                                // Is level 2/level 2-
         list_itemInfo2.push({
           content: itemInfo.content.trim(),
           level: level2
         })
         continue
       }
-      else{                                                       // level2+，内换行                                                     // 
+      else{                                                       // level 2+, Inline line break                                                     // 
         let old_itemInfo = list_itemInfo2.pop()
         if(old_itemInfo){
           let new_content = itemInfo.content.trim()
@@ -484,12 +484,12 @@ export class ListProcess{
     let level1 = -1
     let level2 = -1
     for (let itemInfo of list_itemInfo) {
-      let this_level: number                                      // 一共三种可能：0、1、(1+)表
-      if (level1<0) {level1=itemInfo.level; this_level = level1}  // 未配置level1
-      else if (level1>=itemInfo.level) this_level = level1        // 是level1
-      else if (level2<0) {level2=itemInfo.level; this_level = level2}  // 未配置level2
-      else if (level2>=itemInfo.level) this_level = level2             // 是level2
-      else { // (level2<itemInfo.level)                           // 依然是level2，但进行内换行，并把列表符和缩进给加回去
+      let this_level: number                                      // There are three possibilities in total: 0, 1, (1+)表
+      if (level1<0) {level1=itemInfo.level; this_level = level1}  // Level 1 not configured
+      else if (level1>=itemInfo.level) this_level = level1        // Is level 1
+      else if (level2<0) {level2=itemInfo.level; this_level = level2}  // Level 2 not configured
+      else if (level2>=itemInfo.level) this_level = level2             // Is level 2
+      else { // (level2<itemInfo.level)                           // Still level 2, but perform inline line break, and add list symbols and indentation back
         let old_itemInfo = list_itemInfo2.pop()
         if(old_itemInfo){
           let new_content = "- "+itemInfo.content.trim()
@@ -511,7 +511,7 @@ export class ListProcess{
     return list_itemInfo2*/
   }
 
-  /** 二层树转多层一叉树 
+  /** Convert two-level tree to multi-level one-pronged tree 
    * example:
    * - 1
    *  - 2
@@ -527,7 +527,7 @@ export class ListProcess{
     let list_itemInfo2:List_ListItem = []
     let count_level_2 = 0
     for (let item of list_itemInfo){
-      if (item.level!=0){                     // 在二层，依次增加层数
+      if (item.level!=0){                     // In the second level, increase the level one by one
         // item.level += count_level_2
         list_itemInfo2.push({
           content: item.content,
@@ -535,7 +535,7 @@ export class ListProcess{
         })
         count_level_2++
       }
-      else {                                  // 在一层
+      else {                                  // In the first level
         list_itemInfo2.push({
           content: item.content,
           level: item.level
@@ -546,46 +546,46 @@ export class ListProcess{
     return list_itemInfo2
   }
 
-  /** 列表数据转表格 */
+  /** Convert list data to table */
   private static data2table(
     list_itemInfo: List_ListItem, 
     div: HTMLDivElement,
-    modeT: boolean        // 是否转置
+    modeT: boolean        // Whether to transpose
   ){
-    // 组装成表格数据 (列表是深度优先)
+    // Assemble into table data (list is depth-first)
     let list_tableInfo:List_TableItem = []
-    let prev_line = -1   // 并存储后一行的序列!
-    let prev_level = 999 // 上一行的等级
+    let prev_line = -1   // And store the sequence of the next line!
+    let prev_level = 999 // Level of the previous line
     for (let i=0; i<list_itemInfo.length; i++){
       let item = list_itemInfo[i]
       
-      // 获取跨行数
+      // Get the number of rows spanned
       let tableRow = 1
       let row_level = list_itemInfo[i].level
       for (let j=i+1; j<list_itemInfo.length; j++) {
-        if (list_itemInfo[j].level > row_level){                  // 在右侧，不换行
+        if (list_itemInfo[j].level > row_level){                  // On the right, do not wrap
           row_level = list_itemInfo[j].level
         }
-        else if (list_itemInfo[j].level > list_itemInfo[i].level){// 换行但是不换item项的行
+        else if (list_itemInfo[j].level > list_itemInfo[i].level){// Wrap but don't wrap the item line
           row_level = list_itemInfo[j].level
           tableRow++
         }
-        else break                                                // 换item项的行
+        else break                                                // Wrap item line
       }
 
-      // 获取所在行数。分换行（创建新行）和不换行，第一行总是创建新行
-      // 这里的if表示该换行了
+      // Get the row number. Divide into wrapping (create a new row) and not wrapping, the first row always creates a new row
+      // if here means that it should be wrapped
       if (item.level <= prev_level) {
         prev_line++
       }
       prev_level = item.level
 
-      // 填写
+      // Fill in
       list_tableInfo.push({
-        content: item.content,  // 内容
-        level: item.level,      // 级别
-        tableRow: tableRow,     // 跨行数
-        tableLine: prev_line    // 对应首行序列
+        content: item.content,  // Content
+        level: item.level,      // Level
+        tableRow: tableRow,     // Number of rows spanned
+        tableLine: prev_line    // Corresponding first line sequence
       })
     }
     new GeneratorBranchTable({
@@ -599,9 +599,9 @@ export class ListProcess{
     return div
   }
 
-  /** 列表格数据转列表格
-   * 注意传入的列表数据应该符合：
-   * 第一列等级为0、没有分叉
+  /** Convert list table data to list table
+   * Note that the list data passed in should conform to:
+   * The level of the first column is 0, and there is no branching
    */
   private static uldata2ultable(
     list_itemInfo: List_ListItem, 
@@ -609,38 +609,38 @@ export class ListProcess{
     modeT: boolean,
     is_folder=false
   ){
-    // 组装成表格数据 (列表是深度优先)
-    let tr_line_level = [] // 表格行等级（树形表格独有）
+    // Assemble into table data (list is depth-first)
+    let tr_line_level = [] // Table row level (unique to tree table)
     let list_tableInfo:List_TableItem = []
-    let prev_line = -1   // 并存储后一行的序列!
-    let prev_level = 999 // 上一行的等级
+    let prev_line = -1   // And store the sequence of the next line!
+    let prev_level = 999 // Level of the previous line
     for (let i=0; i<list_itemInfo.length; i++){
       let item = list_itemInfo[i]
       let item_type:string = ""
 
-      // 获取所在行数。分换行（创建新行）和不换行，第一行总是创建新行
-      // 这里的if表示该换行了
+      // Get the row number. Divide into wrapping (create a new row) and not wrapping, the first row always creates a new row
+      // if here means that it should be wrapped
       if (item.level <= prev_level) {
         prev_line++
         if (item.level==0) {
-          /** @可优化 前面是列表级别转空格，现在是删除空格转回列表级别。这受限于Item格式 */
-          const matchs = item.content.match(/^((&nbsp;)*)/)
+          /** @可优化 The previous one is to convert the list level to spaces, and now it is to remove spaces and convert back to the list level. This is limited by the Item format */
+          const matchs = item.content.match(/^(( )*)/)
           if (!matchs) return div
           if (!matchs[1]) tr_line_level.push(0)
           else tr_line_level.push(Math.round(matchs[1].length/6))
-          item.content = item.content.replace(/^((&nbsp;)*)/, "")
+          item.content = item.content.replace(/^(( )*)/, "")
           
-          // 由字符串前缀得出文件格式
+          // Determine the file format from the string prefix
           if(is_folder){
             const matchs = item.content.match(/^(=|~) /)
-            // 无类型/不显示图标的文件类型
+            // No type/file type that does not display icons
             if (!matchs){}
-            // 文件夹
+            // Folder
             else if (matchs[1]=="= "){
               item_type = "folder"
               item.content = item.content.replace(/^\= /, "")
             }
-            // 根据后缀名决定
+            // Decide based on the suffix name
             else if(matchs[1]="~ "){
               const m_line = item.content.match(/^\~(.*)\.(.*)/)
               if(!m_line) {}
@@ -653,12 +653,12 @@ export class ListProcess{
         }
         else {
           tr_line_level.push(0)
-          console.warn("数据错误：列表格中跨行数据")
+          console.warn("Data error: Cross-row data in list table")
         }
       }
       prev_level = item.level
 
-      // 填写
+      // Fill in
       list_tableInfo.push({
         content: item.content,
         level: item.level,
@@ -680,16 +680,16 @@ export class ListProcess{
     return div
   }
 
-  /** 列表数据转列表（看起来脱屁股放屁，但有时调试会需要）
-   * 另外还有个妙用：list2data + data2list = listXinline
+  /** Convert list data to list (it looks like farting in the ass, but sometimes debugging will need it)
+   * There is another clever use: list2data + data2list = listXinline
    */
   private static data2list(
     list_itemInfo: List_ListItem
   ){
     let list_newcontent:string[] = []
-    // 每一个level里的content处理
+    // Content processing in each level
     for (let item of list_itemInfo){
-      // 等级转缩进，以及"\n" 转化（这里像mindmap语法那样用<br>，要进行换行转缩进）
+      // Convert level to indentation, and convert "\n" (use <br> like mindmap syntax here, need to convert line break to indentation)
       let str_indent = ""
       for(let i=0; i<item.level; i++) str_indent+= " "
       let list_content = item.content.split("\n")
@@ -702,7 +702,7 @@ export class ListProcess{
     return newcontent
   }
 
-  /** 列表数据转标签栏 */
+  /** Convert list data to tab bar */
   private static data2tab(
     list_itemInfo: List_ListItem, 
     div: HTMLDivElement,
@@ -718,34 +718,34 @@ export class ListProcess{
     return div
   }
 
-  /** 列表数据转mermaid流程图
-   * ~~@bug 旧版bug（未内置mermaid）会闪一下~~ 
-   * 然后注意一下mermaid的(项)不能有空格，或非法字符。空格我处理掉了，字符我先不管。算了，还是不处理空格吧
+  /** Convert list data to mermaid flowchart
+   * ~~@bug Old version bug (mermaid not built-in) will flash~~ 
+   * Then note that mermaid (item) cannot have spaces, or illegal characters. I have dealt with spaces, I don't care about characters for now. Forget it, I'll still not deal with spaces
    */
   private static data2mermaid(
     list_itemInfo: List_ListItem, 
     div: HTMLDivElement
   ){
-    const html_mode = false    // @todo 暂时没有设置来切换这个开关
+    const html_mode = false    // @todo No settings to switch this switch yet
 
     let list_line_content:string[] = ["graph LR"]
     // let list_line_content:string[] = html_mode?['<pre class="mermaid">', "graph LR"]:["```mermaid", "graph LR"]
     let prev_line_content = ""
     let prev_level = 999
     for (let i=0; i<list_itemInfo.length; i++){
-      if (list_itemInfo[i].level>prev_level){ // 向右正常加箭头
+      if (list_itemInfo[i].level>prev_level){ // Normal addition of arrows to the right
         prev_line_content = prev_line_content+" --> "+list_itemInfo[i].content//.replace(/ /g, "_")
-      } else {                                // 换行，并……
+      } else {                                // Wrap, and...
         list_line_content.push(prev_line_content)
         prev_line_content = ""
 
-        for (let j=i; j>=0; j--){             // 回退到上一个比自己大的
+        for (let j=i; j>=0; j--){             // Back up to the previous one that is larger than itself
           if(list_itemInfo[j].level<list_itemInfo[i].level) {
             prev_line_content = list_itemInfo[j].content//.replace(/ /g, "_")
             break
           }
         }
-        if (prev_line_content) prev_line_content=prev_line_content+" --> "  // 如果有比自己大的
+        if (prev_line_content) prev_line_content=prev_line_content+" --> "  // If there is a larger one
         prev_line_content=prev_line_content+list_itemInfo[i].content//.replace(/ /g, "_")
       }
       prev_level = list_itemInfo[i].level
@@ -766,14 +766,14 @@ export class ListProcess{
     return div
   }
 
-  /** 列表数据转mermaid思维导图 */
+  /** Convert list data to mermaid mind map */
   private static data2mindmap(
     list_itemInfo: List_ListItem, 
     div: HTMLDivElement
   ){
     let list_newcontent:string[] = []
     for (let item of list_itemInfo){
-      // 等级转缩进，以及"\n" 转化 <br/>
+      // Convert level to indentation, and convert "\n" to <br/>
       let str_indent = ""
       for(let i=0; i<item.level; i++) str_indent+= " "
       list_newcontent.push(str_indent+item.content.replace("\n","<br/>"))
@@ -785,7 +785,7 @@ export class ListProcess{
     return div
   }
 
-  /** 列表数据转时间线 */
+  /** Convert list data to timeline */
   /*private static data2timeline(
     list_itemInfo: List_ListInfo, 
     div: HTMLDivElement
