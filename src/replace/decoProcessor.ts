@@ -1,11 +1,11 @@
 import {ABProcessManager} from "./abProcessorManager"
 import {ProcessDataType, type ABProcessorSpecSimp} from "./abProcessorInterface"
 
-export const DECOProcessor = 0  // 用于模块化，防报错，其实没啥用
+export const DECOProcessor = 0  // Used for modularity, error prevention, but actually useless
 
 const process_fold:ABProcessorSpecSimp = {
   id: "fold",
-  name: "折叠",
+  name: "Fold",
   process_param: ProcessDataType.el,
   process_return: ProcessDataType.el,
   process: (el, header, content)=>{
@@ -16,18 +16,18 @@ const process_fold:ABProcessorSpecSimp = {
     sub_el.addClass("ab-deco-fold-content")
     sub_el.hide()
     const mid_el = el.createDiv({cls:["ab-deco-fold"]})
-    const sub_button = mid_el.createDiv({cls: ["ab-deco-fold-button"], text: "展开"})
+    const sub_button = mid_el.createDiv({cls: ["ab-deco-fold-button"], text: "Expand"})
     sub_button.onclick = ()=>{
       const is_hide = sub_el.getAttribute("is_hide")
       if (is_hide && is_hide=="false") {
         sub_el.setAttribute("is_hide", "true"); 
         sub_el.hide(); 
-        sub_button.setText("展开")
+        sub_button.setText("Expand")
       }
       else if(is_hide && is_hide=="true") {
         sub_el.setAttribute("is_hide", "false");
         sub_el.show(); 
-        sub_button.setText("折叠")
+        sub_button.setText("Collapse")
       }
     }
     mid_el.appendChild(sub_button)
@@ -39,23 +39,23 @@ ABProcessManager.getInstance().registerABProcessor(process_fold)
 
 const process_scroll:ABProcessorSpecSimp = {
   id: "scroll",
-  name: "滚动",
+  name: "Scroll",
   match: /^scroll(\((\d+)\))?(T)?$/,
   default: "scroll(460)",
   process_param: ProcessDataType.el,
   process_return: ProcessDataType.el,
   process: (el, header, content)=>{
-    // 找参数
+    // Find parameters
     const matchs = header.match(/^scroll(\((\d+)\))?(T)?$/)
     if (!matchs) return el
     let arg1
-    if (!matchs[1]) arg1=460  // 默认值
+    if (!matchs[1]) arg1=460  // Default value
     else{
       if (!matchs[2]) return el
       arg1 = Number(matchs[2])
       if (isNaN(arg1)) return
     }
-    // 修改元素
+    // Modify the element
     if(el.children.length!=1) return el
     const sub_el = el.children[0]
     sub_el.remove()
@@ -74,28 +74,28 @@ ABProcessManager.getInstance().registerABProcessor(process_scroll)
 
 const process_overfold:ABProcessorSpecSimp = {
   id: "overfold",
-  name: "超出折叠",
+  name: "Overflow Fold",
   match: /^overfold(\((\d+)\))?$/,
   default: "overfold(380)",
   process_param: ProcessDataType.el,
   process_return: ProcessDataType.el,
   process: (el, header, content)=>{
-    // 找参数
+    // Find parameters
     const matchs = header.match(/^overfold(\((\d+)\))?$/)
     if (!matchs) return el
     let arg1:number
-    if (!matchs[1]) arg1=460  // 默认值
+    if (!matchs[1]) arg1=460  // Default value
     else{
       if (!matchs[2]) return el
       arg1 = Number(matchs[2])
       if (isNaN(arg1)) return
     }
-    // 修改元素
+    // Modify the element
     if(el.children.length!=1) return el
     const sub_el = el.children[0]
     sub_el.remove()
     const mid_el = el.createDiv({cls:["ab-deco-overfold"]})
-    const sub_button = mid_el.createDiv({cls: ["ab-deco-overfold-button"], text: "展开"})
+    const sub_button = mid_el.createDiv({cls: ["ab-deco-overfold-button"], text: "Expand"})
     sub_el.addClass("ab-deco-overfold-content")
     mid_el.appendChild(sub_el)
     mid_el.appendChild(sub_button)
@@ -108,12 +108,12 @@ const process_overfold:ABProcessorSpecSimp = {
       if (is_fold=="true") {
         mid_el.setAttribute("style", "")
         mid_el.setAttribute("is-fold", "false")
-        sub_button.setText("折叠")
+        sub_button.setText("Collapse")
       }
       else{
         mid_el.setAttribute("style", `max-height: ${arg1}px`)
         mid_el.setAttribute("is-fold", "true")
-        sub_button.setText("展开")
+        sub_button.setText("Expand")
       }
     }
 
@@ -125,8 +125,8 @@ ABProcessManager.getInstance().registerABProcessor(process_overfold)
 
 const process_addClass:ABProcessorSpecSimp = {
   id: "addClass",
-  name: "增加class",
-  detail: "给当前块增加一个类名",
+  name: "Add Class",
+  detail: "Add a class name to the current block",
   match: /^addClass\((.*)\)$/,
   process_param: ProcessDataType.el,
   process_return: ProcessDataType.el,
@@ -143,8 +143,8 @@ ABProcessManager.getInstance().registerABProcessor(process_addClass)
 
 const process_addDiv:ABProcessorSpecSimp = {
   id: "addDiv",
-  name: "增加div和class",
-  detail: "给当前块增加一个父类，需要给这个父类一个类名",
+  name: "Add Div and Class",
+  detail: "Add a parent class to the current block, you need to give this parent class a class name",
   match: /^addDiv\((.*)\)$/,
   process_param: ProcessDataType.el,
   process_return: ProcessDataType.el,
@@ -152,7 +152,7 @@ const process_addDiv:ABProcessorSpecSimp = {
     const matchs = header.match(/^addDiv\((.*)\)$/)
     if (!matchs || !matchs[1]) return el
     const arg1 = matchs[1]
-    // 修改元素
+    // Modify the element
     if(el.children.length!=1) return el
     const sub_el = el.children[0]
     sub_el.remove()
@@ -165,8 +165,8 @@ ABProcessManager.getInstance().registerABProcessor(process_addDiv)
 
 const process_heimu:ABProcessorSpecSimp = {
   id: "heimu",
-  name: "黑幕",
-  detail: "和萌娘百科的黑幕效果相似",
+  name: "Blackout",
+  detail: "Similar to the blackout effect in Moegirlpedia",
   process_alias: "addClass(ab-deco-heimu)",
   process: (el, header, content)=>{}
 }
@@ -174,9 +174,9 @@ ABProcessManager.getInstance().registerABProcessor(process_heimu)
 
 const process_title:ABProcessorSpecSimp = {
   id: "title",
-  name: "标题",
+  name: "Title",
   match: /^#(.*)/,
-  detail: "若直接处理代码或表格块，则会有特殊风格",
+  detail: "If you process code or table blocks directly, there will be a special style",
   process_param: ProcessDataType.el,
   process_return: ProcessDataType.el,
   process: (el, header, content)=>{
@@ -184,7 +184,7 @@ const process_title:ABProcessorSpecSimp = {
     if (!matchs || !matchs[1]) return el
     const arg1 = matchs[1]
 
-    // 修改元素
+    // Modify the element
     if(el.children.length!=1) return el
     const sub_el = el.children[0] as HTMLElement
     sub_el.remove()
@@ -195,14 +195,14 @@ const process_title:ABProcessorSpecSimp = {
     mid_el.appendChild(sub_title)
     mid_el.appendChild(sub_el)
 
-    // 判断元素类型修改，以修改title风格
+    // Determine the element type to modify, to modify the title style
     let title_type = "none"
     if (sub_el instanceof HTMLQuoteElement){title_type = "quote"}
     else if (sub_el instanceof HTMLTableElement){title_type = "table"}
     else if (sub_el instanceof HTMLPreElement){
       title_type = "pre"
       ;(()=>{
-        // 这里尝试获取代码块的背景颜色（失败）
+        // Here I try to get the background color of the code block (failed)
         console.log("style1", window.getComputedStyle(sub_el ,null),
         "style2", window.getComputedStyle(sub_el ,null).getPropertyValue('background-color'),
         "style3", window.getComputedStyle(sub_el ,null).getPropertyValue('background'),
