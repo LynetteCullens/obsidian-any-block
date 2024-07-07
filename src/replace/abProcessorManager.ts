@@ -1,4 +1,4 @@
-/** 基于接口写的扩展处理器的文件 */
+/** File containing extended processors based on interfaces */
 import {MarkdownRenderChild, MarkdownRenderer} from 'obsidian';
 import {
   ProcessDataType, 
@@ -8,7 +8,7 @@ import {
 } from './abProcessorInterface'
 
 export class ABProcessManager {
-  // 单例模式
+  // Singleton pattern
   static getInstance(): ABProcessManager {
     if (!ABProcessManager.m_instance) {
       ABProcessManager.m_instance = new ABProcessManager();
@@ -16,8 +16,8 @@ export class ABProcessManager {
     return ABProcessManager.m_instance;
   }
   
-  /** 自动寻找相匹配的ab处理器进行处理
-   * ab处理器能根据header和content来转化文本或生成dom元素
+  /** Automatically find the matching ab processor for processing
+   * ab processors can convert text or generate DOM elements based on header and content
    */
   public autoABProcessor(el:HTMLDivElement, header:string, content:string):HTMLElement{
     let prev_result:any = content
@@ -25,7 +25,7 @@ export class ABProcessManager {
     let prev_type: ProcessDataType = ProcessDataType.text
     prev_result = this.autoABProcessor_runProcessor(el, list_header, prev_result, prev_type)
     
-    // 尾处理。如果还是text内容，则给一个md渲染器
+    // Tail processing. If it's still text content, give it a md renderer
     if (prev_type==ProcessDataType.text) {
       const subEl = el.createDiv()
       subEl.addClass("markdown-rendered")
@@ -37,7 +37,7 @@ export class ABProcessManager {
     return prev_result
   }
 
-  /// 处理器一览表 - 下拉框推荐
+  /// Processor Overview Table - Drop-Down Box Recommendations
   getProcessorOptions(){
     return this.list_abProcessor
     .filter(item=>{
@@ -48,7 +48,7 @@ export class ABProcessManager {
     })
   }
 
-  /// 处理器一览表 - 全部信息
+  /// Processor Overview Table - All Information
   generateProcessorInfoTable(el: HTMLElement){
     const table_p = el.createEl("div",{
       cls: ["ab-setting","md-table-fig1"]
@@ -59,15 +59,15 @@ export class ABProcessManager {
     {
       const thead = table.createEl("thead")
       const tr = thead.createEl("tr")
-      tr.createEl("td", {text: "处理器名"})
-      tr.createEl("td", {text: "下拉框默认项"})
-      tr.createEl("td", {text: "用途描述"})
-      tr.createEl("td", {text: "处理类型"})
-      tr.createEl("td", {text: "输出类型"})
-      tr.createEl("td", {text: "正则"})
-      tr.createEl("td", {text: "别名替换"})
-      tr.createEl("td", {text: "是否启用"})
-      tr.createEl("td", {text: "定义来源"})
+      tr.createEl("td", {text: "Processor Name"})
+      tr.createEl("td", {text: "Drop-Down Box Default"})
+      tr.createEl("td", {text: "Usage Description"})
+      tr.createEl("td", {text: "Processing Type"})
+      tr.createEl("td", {text: "Output Type"})
+      tr.createEl("td", {text: "Regular Expression"})
+      tr.createEl("td", {text: "Alias Replacement"})
+      tr.createEl("td", {text: "Is Enabled"})
+      tr.createEl("td", {text: "Definition Source"})
     }
     const tbody = table.createEl("tbody")
     for (let item of this.list_abProcessor){
@@ -80,31 +80,31 @@ export class ABProcessManager {
       tr.createEl("td", {text: String(item.process_return)})
       tr.createEl("td", {text: String(item.match)})
       tr.createEl("td", {text: item.process_alias})
-      tr.createEl("td", {text: item.is_disable?"禁用":"启用"})
+      tr.createEl("td", {text: item.is_disable?"Disabled":"Enabled"})
       tr.createEl("td", {text: item.register_from})
     }
     return table_p
   }
 
-  /// 用户注册处理器
+  /// User registers processors
   registerABProcessor(process: ABProcessorSpec| ABProcessorSpecSimp| ABProcessorSpecUser){
     this.list_abProcessor.push(this.adaptToABProcessorSepc(process));
   }
 
-  private static m_instance: ABProcessManager // 单例
+  private static m_instance: ABProcessManager // Singleton
 
-  /// ab处理器 - 严格版，的接口与列表
+  /// ab Processor - Strict Version, Interface and List
   private list_abProcessor: ABProcessorSpec[] = []
 
-  /// 适配器
+  /// Adapter
   private adaptToABProcessorSepc(process: ABProcessorSpec| ABProcessorSpecSimp| ABProcessorSpecUser): ABProcessorSpec{
-    if ('is_disable' in process) { // 严格版 存储版
+    if ('is_disable' in process) { // Strict Version, Storage Version
       return process
     }
-    else if ('process' in process) { // 用户版 注册版
+    else if ('process' in process) { // User Version, Registration Version
       return this.adaptToABProcessorSepc_simp(process)
     }
-    else { // 别名版 无代码版
+    else { // Alias Version, No Code Version
       return this.adaptToABProcessorSepc_user(process)
     }
   }
@@ -123,7 +123,7 @@ export class ABProcessManager {
       process_return: sim.process_return??null,
       process: sim.process,
       is_disable: false,
-      register_from: "内置",
+      register_from: "Built-in",
     }
     return abProcessorSpec
   }
@@ -140,22 +140,22 @@ export class ABProcessManager {
       process_return: null,
       process: ()=>{},
       is_disable: false,
-      register_from: "用户",
+      register_from: "User",
     }
     return abProcessorSpec
   }
 
-  // iterable function
+  // Iterable function
   private autoABProcessor_runProcessor(el:HTMLDivElement, list_header:string[], prev_result:any, prev_type:ProcessDataType):any{
-    // 循环header组，直到遍历完文本处理器或遇到渲染处理器
+    // Loop through the header group until all text processors are traversed or a rendering processor is encountered
     for (let item_header of list_header){
       for (let abReplaceProcessor of this.list_abProcessor){
-        // 通过header寻找处理器
+        // Find the processor through the header
         if (typeof(abReplaceProcessor.match)=='string'){if (abReplaceProcessor.match!=item_header) continue}
         else {if (!abReplaceProcessor.match.test(item_header)) continue}
-        // 检查是否有别名。若是，递归
+        // Check if there is an alias. If so, recursively call
         if(abReplaceProcessor.process_alias){
-          // 别名支持引用正则参数
+          // Alias supports referencing regular expression parameters
           let alias = abReplaceProcessor.process_alias
           ;(()=>{
             if (abReplaceProcessor.process_alias.indexOf("%")<0) return
@@ -167,14 +167,14 @@ export class ABProcessManager {
             // replaceAlias
             for (let i=1; i<len; i++){
               if (!matchs[i]) continue
-              alias = alias.replace(RegExp(`%${i}`), matchs[i]) /** @bug 按理应该用`(?<!\\)%${i}`，但ob不支持正则的向前查找 */
+              alias = alias.replace(RegExp(`%${i}`), matchs[i]) /** @bug Ideally it should use `(?<!\\)%${i}`, but ob does not support forward lookups in regular expressions */
             }
           })()
           prev_result = this.autoABProcessor_runProcessor(el, alias.split("|"), prev_result, prev_type)
         }
-        // 若不是，使用process方法
+        // If not, use the process method
         else if(abReplaceProcessor.process){
-          // 检查输入类型
+          // Check input type
           if(abReplaceProcessor.process_param != prev_type){
             if (abReplaceProcessor.process_param==ProcessDataType.el && prev_type==ProcessDataType.text){
               const subEl = el.createDiv()
@@ -185,22 +185,22 @@ export class ABProcessManager {
               prev_result = el
             }
             else{
-              console.warn("处理器参数类型错误", abReplaceProcessor.process_param, prev_type);
+              console.warn("Processor parameter type error", abReplaceProcessor.process_param, prev_type);
               break
             }
           }
-          // 执行处理器
+          // Execute processor
           prev_result = abReplaceProcessor.process(el, item_header, prev_result)
-          // 检查输出类型
+          // Check output type
           if(prev_result instanceof HTMLElement){prev_type = ProcessDataType.el}
           else if(typeof(prev_result) == "string"){prev_type = ProcessDataType.text}
           else {
-            console.warn("处理器输出类型错误", abReplaceProcessor.process_param, prev_type);
+            console.warn("Processor output type error", abReplaceProcessor.process_param, prev_type);
             break
           }
         }
         else{
-          console.warn("处理器必须实现process或process_alias方法")
+          console.warn("Processor must implement process or process_alias method")
         }
       }
     }
