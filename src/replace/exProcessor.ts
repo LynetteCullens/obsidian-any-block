@@ -16,12 +16,12 @@ const process_faq:ABProcessorSpecSimp = {
     let last_content:string = ""
     for (let line of list_content){
       const m_line = line.match(/^([a-zA-Z])(: |：)(.*)/)
-      if (!m_line){ // 不匹配
+      if (!m_line){ // Not matched
         if (mode_qa) {
           last_content = last_content + "\n" + line
         }
         continue
-      } else {      // 匹配
+      } else {      // Matched
         if (mode_qa) {
           const e_faq_line = e_faq.createDiv({cls:`ab-faq-line ab-faq-${mode_qa}`})
           const e_faq_bubble = e_faq_line.createDiv({cls:`ab-faq-bubble ab-faq-${mode_qa}`})
@@ -34,7 +34,7 @@ const process_faq:ABProcessorSpecSimp = {
         last_content = m_line[3]
       }
     }
-    // 循环尾
+    // Loop tail
     if (mode_qa) {
       const e_faq_line = e_faq.createDiv({cls:`ab-faq-line ab-faq-${mode_qa}`})
           const e_faq_bubble = e_faq_line.createDiv({cls:`ab-faq-bubble ab-faq-${mode_qa}`})
