@@ -1,12 +1,12 @@
-/** ab处理器子接口
- * @warn 暂时不允许扩展，处理器的参数和返回值目前还是使用的手动一个一个来检查的
+/** ab Processor Sub-Interface
+ * @warn Extension is not allowed for now, the parameters and return values of the processor are currently manually checked one by one
  */
 export enum ProcessDataType {
   text= "string",
   el= "HTMLElement"
 }
 
-/// ab处理器接口 - 严格版 存储版
+/// ab Processor Interface - Strict Version, Storage Version
 export interface ABProcessorSpec{
   id: string
   name: string
@@ -17,34 +17,34 @@ export interface ABProcessorSpec{
   process_param: ProcessDataType|null,
   process_return: ProcessDataType|null,
   process: (el:HTMLDivElement, header:string, content:string)=> any
-  is_disable: boolean   // 是否禁用，默认false
-  register_from: string // 自带、其他插件、面板设置，如果是其他插件，则需要提供插件的名称（不知道能不能自动识别）
-  // 非注册项：
-  // ~~is_inner：这个不可设置，用来区分是内部还是外部给的~~
-  // is_enable: 加载后能禁用这个项
+  is_disable: boolean   // Whether to disable, default is false
+  register_from: string // Built-in, other plugins, panel settings, if it is another plugin, the name of the plugin needs to be provided (I don't know if it can be automatically identified)
+  // Non-registration items:
+  // ~~is_inner：This cannot be set, used to distinguish between internal and external~~
+  // is_enable: This item can be disabled after loading
 }
 
-/** ab处理器 - 语法糖版，的接口与注册函数
- * 使用 ab处理器接口 - 用户语法糖版
- * 不允许直接写严格版的，有些参数不能让用户填
+/** ab Processor - Syntactic Sugar Version, Interface and Registration Function
+ * Use ab Processor Interface - User Syntactic Sugar Version
+ * It is not allowed to write the strict version directly, some parameters cannot be filled by the user
  */
 export interface ABProcessorSpecSimp{
-  id: string            // 唯一标识（当不填match时也会作为匹配项）
-  name: string          // 处理器名字
-  match?: RegExp|string // 处理器匹配正则（不填则为id，而不是name！name可以被翻译或是重复的）如果填写了且为正则类型，不会显示在下拉框中
-  default?: string|null // 下拉选择的默认规则，不填的话：非正则默认为id，有正则则为空
-  detail?: string       // 处理器描述
-  // is_render?: boolean   // 是否渲染处理器，默认为true。false则为文本处理器
-  process_alias?: string    // 组装，如果不为空串则会覆盖process方法，但扔需要给process一个空实现
+  id: string            // Unique identifier (also used as a matching item when match is not filled)
+  name: string          // Processor name
+  match?: RegExp|string // Processor matching regular expression (if not filled, it is id, not name! name can be translated or duplicated) If filled and is of regular expression type, it will not be displayed in the drop-down box
+  default?: string|null // Default rule for drop-down selection, if not filled: non-regular expression defaults to id, if there is a regular expression, it is empty
+  detail?: string       // Processor description
+  // is_render?: boolean   // Whether to render the processor, defaults to true. False is for text processor
+  process_alias?: string    // Assembly, if it is not an empty string, it will override the process method, but still need to give process an empty implementation
   process_param?: ProcessDataType
   process_return?: ProcessDataType
   process: (el:HTMLDivElement, header:string, content:string)=> any
-                        // 处理器
+                        // Processor
 }
 
-/** ab处理器 - 用户版，的接口与注册函数
- * 使用 ab处理器接口 - 用户版（都是字符串存储）
- * 特点：不能注册process（无法存储在txt中），只能注册别名
+/** ab Processor - User Version, Interface and Registration Function
+ * Use ab Processor Interface - User Version (all string storage)
+ * Feature: Cannot register process (cannot be stored in txt), can only register aliases
  */
 export interface ABProcessorSpecUser{
   id:string
