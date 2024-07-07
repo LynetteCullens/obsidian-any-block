@@ -13,11 +13,11 @@ export default class AnyBlockPlugin extends Plugin {
     await this.loadSettings();
     this.addSettingTab(new ABSettingTab(this.app, this));
 
-    // 代码块
+    // Code block
     this.registerMarkdownCodeBlockProcessor("ab", ABCodeblockManager.processor);
     
-    // 非渲染模式 cm扩展 - StateField
-    // 刚开插件时和每次打开文件时都运行
+    // Non-rendering mode cm extension - StateField
+    // Runs when the plugin is just started and every time a file is opened
     this.app.workspace.onLayoutReady(()=>{
       new ABStateManager(this)
     })
@@ -27,7 +27,7 @@ export default class AnyBlockPlugin extends Plugin {
       })
     );
 
-    // 渲染模式 后处理器
+    // Render mode Post processor
     const htmlProcessor = ABPosthtmlManager.processor.bind(this)
     this.registerMarkdownPostProcessor(htmlProcessor);
   }
